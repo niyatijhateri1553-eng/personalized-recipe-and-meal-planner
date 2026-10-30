@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personalized Recipe Box and Meal Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= 1. LOGIN & REGISTRATION SCREEN ================= -->
+  <div id="authSection" class="auth-container">
+    <div class="auth-box">
+      <h1>🍲 Recipe Box & Meal Planner</h1>
+      <p class="subtitle">Smart Nutrition, Macros & Diet Request System</p>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="loginUser(event)">
+        <h2>User Login</h2>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" id="loginEmail" placeholder="Enter email" required>
+        </div>
+        <div class="form-group">
+          <label>Password:</label>
+          <input type="password" id="loginPass" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn btn-full">Login</button>
+        <p class="switch-link">Don't have an account? <a href="#" onclick="toggleAuth('register')">Register here</a></p>
+      </form>
+
+      <!-- Register Form (Hidden by default) -->
+      <form id="registerForm" style="display: none;" onsubmit="registerUser(event)">
+        <h2>User Registration</h2>
+        <div class="form-group">
+          <label>Full Name:</label>
+          <input type="text" id="regName" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" id="regEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label>Password (min 4 chars):</label>
+          <input type="password" id="regPass" placeholder="Create password" required>
+        </div>
+        <div class="form-group">
+          <label>Select Role:</label>
+          <select id="regRole">
+            <option value="User">Normal User (Student/Cook)</option>
+            <option value="Admin">Admin (Nutritionist/Chef)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-full">Register</button>
+        <p class="switch-link">Already have an account? <a href="#" onclick="toggleAuth('login')">Login here</a></p>
+      </form>
+
+      <!-- Quick Demo Login for Viva Presentation -->
+      <div class="demo-box">
+        <p><strong>Quick Demo Login (For Viva):</strong></p>
+        <button class="btn-secondary" onclick="demoLogin('Admin')">Login as Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. MAIN APPLICATION SCREEN ================= -->
+  <div id="appSection" style="display: none;">
+    
+    <!-- Navigation Bar -->
+    <header class="navbar">
+      <h2>🍲 Recipe Box & Meal Planner</h2>
+      <nav class="nav-links">
+        <button onclick="showSection('dashboard')">📊 Dashboard</button>
+        <button onclick="showSection('recipes')">📖 Recipe Box</button>
+        <button onclick="showSection('planner')">📅 Meal Planner & Requests</button>
+      </nav>
+      <div class="user-info">
+        <span id="welcomeUser">Welcome!</span>
+        <button class="btn-danger" onclick="logoutUser()">Logout</button>
+      </div>
+    </header>
+
+    <div class="container">
+
+      <!-- SECTION A: DASHBOARD & REPORTING -->
+      <section id="dashboard" class="page-section">
+        <div class="section-header">
+          <div>
+            <h2>📊 Dashboard & Nutrition Reports</h2>
+            <p class="section-desc">Overview of recipes, macro averages, meal bookings, and preparation statuses.</p>
+          </div>
+          <div class="today-badge" id="dashboardDateBadge">📅 Today</div>
+        </div>
+
+        <!-- Top Booking & Recipe Stats -->
+        <div class="stats-grid">
+          <div class="stat-card accent-green">
+            <h3>Total Recipes</h3>
+            <p id="totalRecipesCount">0</p>
+          </div>
+          <div class="stat-card accent-blue">
+            <h3>Total Bookings</h3>
+            <p id="totalBookingsCount">0</p>
+          </div>
+          <div class="stat-card accent-amber">
+            <h3>Pending Requests</h3>
+            <p id="pendingCount">0</p>
+          </div>
+          <div class="stat-card accent-teal">
+            <h3>Approved Requests</h3>
+            <p id="approvedCount">0</p>
+          </div>
+          <div class="stat-card accent-purple">
+            <h3>Completed Meals</h3>
+            <p id="completedCount">0</p>
+          </div>
+        </div>
+
+        <!-- Nutrition & Macros Summary Card -->
+        <div class="card">
+          <h3>🥗 Recipe Box Nutrition & Macros Summary (Average per Recipe)</h3>
+          <div class="macro-summary-grid">
+            <div class="macro-box cal-box">
+              <span>Avg Calories</span>
+              <strong id="avgCalories">0 kcal</strong>
+            </div>
+            <div class="macro-box pro-box">
+              <span>Avg Protein</span>
+              <strong id="avgProtein">0 g</strong>
+            </div>
+            <div class="macro-box carb-box">
+              <span>Avg Carbs</span>
+              <strong id="avgCarbs">0 g</strong>
+            </div>
+            <div class="macro-box fat-box">
+              <span>Avg Fats</span>
+              <strong id="avgFats">0 g</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Report Table -->
+        <div class="card">
+          <h3>📂 Category Breakdown Report</h3>
+          <div class="table-wrapper">
+            <table class="simple-table">
+              <thead>
+                <tr>
+                  <th>Meal Category</th>
+                  <th>Recipe Count</th>
+                  <th>Avg Calories</th>
+                  <th>Distribution</th>
+                </tr>
+              </thead>
+              <tbody id="categoryReportBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: RECIPE BOX (CREATE, VIEW, EDIT, DELETE, SEARCH & FILTER) -->
+      <section id="recipes" class="page-section" style="display: none;">
+        <div class="section-header">
+          <div>
+            <h2>📖 Personalized Recipe Box</h2>
+            <p class="section-desc">Create recipes with automatic Calorie & Macro (Protein, Carbs, Fats) calculation.</p>
+          </div>
+        </div>
+
+        <!-- Recipe Form (Create & Edit) -->
+        <div class="card">
+          <h3 id="formHeading">Add New Recipe</h3>
+          <form id="recipeForm" onsubmit="saveRecipe(event)">
+            <input type="hidden" id="editRecipeId">
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Recipe Name *</label>
+                <input type="text" id="recTitle" placeholder="e.g. Masala Oats" oninput="autoCalculateNutrition()" required>
+              </div>
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="recCategory" required>
+                  <option value="Breakfast">Breakfast</option>
+                  <option value="Lunch">Lunch</option>
+                  <option value="Dinner">Dinner</option>
+                  <option value="Snack">Snack</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Ingredients * <small class="hint-text">(Auto-calculates calories & macros! Add weights like "oats 100g, milk 150ml, paneer 50g")</small></label>
+              <input type="text" id="recIngredients" placeholder="e.g. Oats(100g), Carrots(50g), Peas(30g)" oninput="autoCalculateNutrition()" required>
+            </div>
+
+            <!-- Auto-Calculated Calories & Macros Row -->
+            <div class="form-row macro-inputs-row">
+              <div class="form-group">
+                <label>🔥 Calories (kcal) *</label>
+                <input type="number" id="recCalories" placeholder="e.g. 300" required>
+              </div>
+              <div class="form-group">
+                <label>💪 Protein (g) *</label>
+                <input type="number" step="0.1" id="recProtein" placeholder="e.g. 12" required>
+              </div>
+              <div class="form-group">
+                <label>🌾 Carbs (g) *</label>
+                <input type="number" step="0.1" id="recCarbs" placeholder="e.g. 45" required>
+              </div>
+              <div class="form-group">
+                <label>🥑 Fats (g) *</label>
+                <input type="number" step="0.1" id="recFats" placeholder="e.g. 8" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Cooking Steps *</label>
+              <textarea id="recSteps" rows="2" placeholder="Write simple steps to cook..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn" id="saveBtn">Save Recipe</button>
+            <button type="button" class="btn-secondary" id="cancelEditBtn" style="display:none;" onclick="resetRecipeForm()">Cancel Edit</button>
+          </form>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="card filter-box">
+          <div class="form-group">
+            <label>🔍 Search by Name or Ingredient:</label>
+            <input type="text" id="searchInput" placeholder="Type to search..." oninput="displayRecipes()">
+          </div>
+          <div class="form-group">
+            <label>Filter by Category:</label>
+            <select id="filterCategory" onchange="displayRecipes()">
+              <option value="All">All Categories</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snack">Snack</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Recipe List Grid -->
+        <div id="recipeList" class="recipe-grid"></div>
+      </section>
+
+      <!-- SECTION C: MEAL PLANNER / BOOKING WORKFLOW & STATUS UPDATES -->
+      <section id="planner" class="page-section" style="display: none;">
+        <div class="section-header">
+          <div>
+            <h2>📅 Meal Planner & Diet Request Workflow</h2>
+            <p class="section-desc">Today's date/day and your recipe's meal category are selected automatically.</p>
+          </div>
+        </div>
+
+        <!-- Form to Book a Meal / Submit Request -->
+        <div class="card">
+          <h3>Book a Meal / Request Custom Diet Plan</h3>
+          <form id="bookingForm" onsubmit="addBooking(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Booking Date (Today) *</label>
+                <input type="date" id="bookDate" onchange="syncDayFromDate()" required>
+              </div>
+              <div class="form-group">
+                <label>Select Day *</label>
+                <select id="bookDay" required>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Select Recipe *</label>
+                <select id="bookRecipe" onchange="syncMealTimeWithRecipe()" required></select>
+              </div>
+              <div class="form-group">
+                <label>Meal Category (Auto) *</label>
+                <select id="bookMealTime" required>
+                  <option value="Breakfast">Breakfast</option>
+                  <option value="Lunch">Lunch</option>
+                  <option value="Dinner">Dinner</option>
+                  <option value="Snack">Snack</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Special Request / Diet Note (Optional):</label>
+              <input type="text" id="bookNotes" placeholder="e.g. Less oil, extra protein, no sugar">
+            </div>
+            <button type="submit" class="btn">Submit Meal Booking</button>
+          </form>
+        </div>
+
+        <!-- Table showing bookings and Status Updates -->
+        <div class="card">
+          <h3>Scheduled Meals & Request Status</h3>
+          <p class="role-hint" id="roleHintText"></p>
+          <div class="table-wrapper">
+            <table class="simple-table">
+              <thead>
+                <tr>
+                  <th>Date & Day</th>
+                  <th>Meal Slot</th>
+                  <th>Recipe & Macros</th>
+                  <th>Special Notes</th>
+                  <th>Booked By</th>
+                  <th>Status</th>
+                  <th>Update Status / Action</th>
+                </tr>
+              </thead>
+              <tbody id="bookingTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
